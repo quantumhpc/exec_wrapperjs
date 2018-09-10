@@ -58,7 +58,9 @@ function spawnProcess(spawnCmd, spawnType, spawnLocal, server_config, opts){
             // Certain shell commands can use the mounted Path, if so use Local
             if(server_config.method === "local" || spawnLocal){
                 spawnExec = spawnCmd.shift();
-                spawnOpts.shell = server_config.localShell;
+                if(!isWin){
+                    spawnOpts.shell = server_config.localShell;
+                }
             }else{
                 spawnExec = server_config.sshExec;
                 spawnCmd = [sshAddress(server_config),"-i",server_config.secretAccessKey].concat(server_config.defaultOpts.split(' ')).concat(spawnCmd);
@@ -119,7 +121,7 @@ function spawnProcess(spawnCmd, spawnType, spawnLocal, server_config, opts){
                     break;
                 case "local":
                     spawnExec = server_config.localCopy;
-                    spawnOpts.shell = server_config.localShell;
+                    spawnOpts.shell = (isWin ? true : server_config.localShell);
                     file        = spawnCmd[0];
                     destDir     = spawnCmd[1];
                     spawnCmd    = [quotes(file),quotes(destDir)];
@@ -239,20 +241,20 @@ function createJobWorkDir(server_config, folder, callback){
     }
     
     //Create workdir with 700 permissions
-    var process;
+    var mkdir;
     if(isWin){
-        process = spawnProcess([
+        mkdir = spawnProcess([
             process.env.comspec, '/c', 'IF NOT EXIST ' + jobWorkingDir + ' ' + 
             process.env.comspec + ' /c mkdir ' +jobWorkingDir
             ] ,"shell", null, server_config);
     }else{
         //Create workdir with 700 permissions
-        process = spawnProcess(["[ -d "+usedDir+" ] || mkdir " + chmod + usedDir],"shell", server_config.useSharedDir, server_config);
+        mkdir = spawnProcess(["[ -d "+usedDir+" ] || mkdir " + chmod + usedDir],"shell", server_config.useSharedDir, server_config);
     }
     
     // Transmit the error if any
-    if (process.stderr){
-        return callback(new Error(process.stderr));
+    if (mkdir.stderr){
+        return callback(new Error(mkdir.stderr));
     }
     
     //TODO:handles error
