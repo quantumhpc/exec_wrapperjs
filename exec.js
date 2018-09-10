@@ -2,7 +2,8 @@ var spawn = require('child_process').spawnSync;
 var path = require("path");
 var maxLength = 36;
 var UIDblock = 'xxxxxxxxxxxx';
-    
+var isWin = (/^win/.test(process.platform));
+
 /**
  * spawnCmd         :   
  *              shell           :   [exec, args1, args2, ...]
@@ -41,7 +42,7 @@ function spawnProcess(spawnCmd, spawnType, spawnLocal, server_config, opts){
         server_config.defaultOpts = '';
     }
     // Use UID and GID on local method, Windows does not support UID/GID
-    if((!/^win/.test(process.platform)) && (server_config.method === "local" || server_config.useSharedDir || spawnLocal)){
+    if((!isWin) && (server_config.method === "local" || server_config.useSharedDir || spawnLocal)){
         server_config.uid = Number(server_config.uid);
         server_config.gid = Number(server_config.gid);
         // UID and GID throw a core dump if not correct numbers
@@ -233,12 +234,21 @@ function createJobWorkDir(server_config, folder, callback){
     
     var chmod = "";
     // Special permissions on working folder
-    if(server_config.permissions){
+    if(!isWin && server_config.permissions){
         chmod = "-m " + server_config.permissions + " ";
     }
     
     //Create workdir with 700 permissions
-    var process = spawnProcess(["[ -d "+usedDir+" ] || mkdir " + chmod + usedDir],"shell", server_config.useSharedDir, server_config);
+    var process;
+    if(isWin){
+        process = spawnProcess([
+            process.env.comspec, '/c', 'IF NOT EXIST ' + jobWorkingDir + ' ' + 
+            process.env.comspec + ' /c mkdir ' +jobWorkingDir
+            ] ,"shell", null, server_config);
+    }else{
+        //Create workdir with 700 permissions
+        process = spawnProcess(["[ -d "+usedDir+" ] || mkdir " + chmod + usedDir],"shell", server_config.useSharedDir, server_config);
+    }
     
     // Transmit the error if any
     if (process.stderr){
