@@ -1,0 +1,27 @@
+{
+  "name": "hpc_exec_wrapper",
+  "version": "1.0.0",
+  "description": "Common function to spawn the main executable of the workload manager locally or by ssh",
+  "main": "exec.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quantumhpc/hpc_exec_wrapperjs.git"
+  },
+  "keywords": [
+    "SSH",
+    "spawn",
+    "copy",
+    "workload",
+    "manager",
+    "pbs",
+    "torque",
+    "openlava",
+    "slurm"
+  ],
+  "author": "QUANTUM HPC Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/quantumhpc/hpc_exec_wrapperjs/issues"
+  },
+  "homepage": "https://github.com/quantumhpc/hpc_exec_wrapperjs#readme"
+}
